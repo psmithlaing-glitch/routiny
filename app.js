@@ -146,10 +146,114 @@ function bind(){
   document.querySelectorAll("[data-caldate]").forEach(b=>b.onclick=()=>{selectedDate=new Date(b.dataset.caldate+"T12:00:00");render()});
 }
 document.getElementById("addBtn").onclick=()=>openForm();
+function isStandalone(){
+  return window.matchMedia("(display-mode: standalone)").matches ||
+         window.navigator.standalone === true;
+}
+
+function urlBase64ToUint8Array(base64String){
+  const padding = "=".repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/-/g, "+")
+    .replace(/_/g, "/");
+
+  const rawData = atob(base64);
+
+  return Uint8Array.from(
+    [...rawData].map(char => char.charCodeAt(0))
+  );
+}
+
 async function requestNotifications(){
-  if(!("Notification" in window)){toast("Notifications aren't supported here.");return}
-  const p=await Notification.requestPermission();
-  toast(p==="granted"?"Notifications enabled!":"Notification permission not granted.");
+
+  // iPhone/iPad check
+  const isAppleDevice = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  // iPhone needs Routiny installed on the Home Screen
+  if(isAppleDevice && !isStandalone()){
+    toast("Open Routiny from your Home Screen first.");
+
+    alert(
+      "To enable Routiny notifications on iPhone:\n\n" +
+      "1. Open Routiny in Safari\n" +
+      "2. Tap Share\n" +
+      "3. Tap Add to Home Screen\n" +
+      "4. Open Routiny using the new Home Screen icon\n" +
+      "5. Try Enable Notifications again"
+    );
+
+    return;
+  }
+
+  // Check browser support
+  if(
+    !("serviceWorker" in navigator) ||
+    !("PushManager" in window) ||
+    !("Notification" in window)
+  ){
+    toast("Push notifications aren't supported here.");
+    return;
+  }
+
+  // Ask iPhone for permission
+  const permission = await Notification.requestPermission();
+
+  if(permission !== "granted"){
+    toast("Notification permission wasn't granted.");
+    return;
+  }
+
+  try{
+
+    const registration = await navigator.serviceWorker.ready;
+
+    const vapidPublicKey =
+      "BJ7U80oNynsBZAl7wJInEKljHMiB3_56ts0Lql6UV2lrC2Ge8-4vrDRsVsCo-FweyVuYlif1zRMZwxlc7H3iO0A";
+
+    let subscription =
+      await registration.pushManager.getSubscription();
+
+    if(!subscription){
+
+      subscription =
+        await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey:
+            urlBase64ToUint8Array(vapidPublicKey)
+        });
+
+    }
+
+    // Save subscription locally for now
+    localStorage.setItem(
+      "routiny.pushSubscription",
+      JSON.stringify(subscription)
+    );
+const response = await fetch(
+  "https://routiny-notifications.psmithlaing.workers.dev/subscribe",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(subscription)
+  }
+);
+
+if (!response.ok) {
+  throw new Error("Could not register subscription with Routiny server");
+}
+    toast("Notifications enabled! 🔔");
+
+    console.log("Routiny push subscription:", subscription);
+
+  }catch(error){
+
+    console.error(error);
+
+    toast("Couldn't enable notifications yet.");
+
+  }
 }
 function openForm(id=null){
   const a=id?activities.find(x=>x.id===id):{name:"",icon:"🏋️",time:"18:00",duration:60,repeat:"Every day",repeatDays:[],reminder:10};
@@ -249,6 +353,10 @@ function applyTheme(dark){
   }
 }
 function toast(text){const x=document.createElement("div");x.className="toast";x.textContent=text;document.body.appendChild(x);setTimeout(()=>x.remove(),2200)}
+
+window.ROUTINY_PUSH_CONFIG = {
+  vapidPublicKey: "BJ7U80oNynsBZAl7wJInEKljHMiB3_56ts0Lql6UV2lrC2Ge8-4vrDRsVsCo-FweyVuYlif1zRMZwxlc7H3iO0A"
+};
 applyTheme(localStorage.getItem(THEME_KEY)==="dark");
 
 // Register the PWA service worker when served from a secure origin or localhost.
