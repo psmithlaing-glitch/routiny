@@ -1,0 +1,24 @@
+{
+  "name": "Routiny",
+  "short_name": "Routiny",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#F7F7FA",
+  "theme_color": "#7C3CFF",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "description": "Routiny - daily routines, reminders, habits and activity timers.",
+  "scope": "./"
+}

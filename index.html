@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#7C3CFF" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="stylesheet" href="style.css" />
+  <title>Routiny</title>
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <button class="icon-btn" id="menuBtn" aria-label="Menu">☰</button>
+      <div class="brand">Routiny</div>
+      <button class="icon-btn" id="notifyBtn" aria-label="Notifications">♧</button>
+    </header>
+
+    <main id="screen" class="screen"></main>
+
+    <button class="fab" id="addBtn" aria-label="Add activity">＋</button>
+
+    <nav class="bottom-nav">
+      <button data-screen="today" class="nav-item active"><span>⌂</span><small>Today</small></button>
+      <button data-screen="schedule" class="nav-item"><span>▣</span><small>Schedule</small></button>
+      <button data-screen="habits" class="nav-item"><span>♡</span><small>Habits</small></button>
+      <button data-screen="stats" class="nav-item"><span>▥</span><small>Stats</small></button>
+      <button data-screen="more" class="nav-item"><span>•••</span><small>More</small></button>
+    </nav>
+  </div>
+
+  <div id="modalRoot"></div>
+  <script src="app.js"></script>
+</body>
+</html>
