@@ -164,26 +164,82 @@ function urlBase64ToUint8Array(base64String){
   );
 }
 
-async function requestNotifications(){
+async function requestNotifications() {
+  try {
+    if (!("Notification" in window)) {
+      toast("Notifications aren't supported here.");
+      return;
+    }
 
-  // iPhone/iPad check
-  const isAppleDevice = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (!("serviceWorker" in navigator)) {
+      toast("Your browser doesn't support notifications.");
+      return;
+    }
 
-  // iPhone needs Routiny installed on the Home Screen
-  if(isAppleDevice && !isStandalone()){
-    toast("Open Routiny from your Home Screen first.");
+    if (!("PushManager" in window)) {
+      toast("Push notifications aren't supported here.");
+      return;
+    }
 
-    alert(
-      "To enable Routiny notifications on iPhone:\n\n" +
-      "1. Open Routiny in Safari\n" +
-      "2. Tap Share\n" +
-      "3. Tap Add to Home Screen\n" +
-      "4. Open Routiny using the new Home Screen icon\n" +
-      "5. Try Enable Notifications again"
+    const permission = await Notification.requestPermission();
+
+    if (permission !== "granted") {
+      toast("Notification permission not granted.");
+      return;
+    }
+
+    const registration = await navigator.serviceWorker.ready;
+
+    const vapidPublicKey =
+      "BJ7U80oNynsBZAl7wJInEKljHMiB3_56ts0Lql6UV2lrC2Ge8-4vrDRsVsCo-FweyVuYlif1zRMZwxlc7H3iO0A";
+
+    const applicationServerKey =
+      urlBase64ToUint8Array(vapidPublicKey);
+
+    let subscription =
+      await registration.pushManager.getSubscription();
+
+    if (!subscription) {
+      subscription =
+        await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey
+        });
+    }
+
+    const response = await fetch(
+      "https://routiny-notifications.psmithlaing.workers.dev/subscribe",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(subscription)
+      }
     );
 
-    return;
+    if (!response.ok) {
+      throw new Error(
+        `Subscription server returned ${response.status}`
+      );
+    }
+
+    toast("Notifications enabled! 🔔");
+
+    console.log(
+      "Routiny push subscription registered:",
+      subscription
+    );
+
+  } catch (error) {
+    console.error(
+      "Routiny notification setup failed:",
+      error
+    );
+
+    toast("Couldn't enable notifications yet.");
   }
+}
 
   // Check browser support
   if(
