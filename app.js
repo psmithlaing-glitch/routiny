@@ -311,6 +311,8 @@ if (!response.ok) {
 
   }
 }
+
+
 function openForm(id=null){
   const a=id?activities.find(x=>x.id===id):{name:"",icon:"🏋️",time:"18:00",duration:60,repeat:"Every day",repeatDays:[],reminder:10};
   const icons=["🏋️","🚿","📖","🧹","💧","🛏️","🎮","🎸","🧘","❤️","🧠","⏰"];
