@@ -362,3 +362,6 @@ applyTheme(localStorage.getItem(THEME_KEY)==="dark");
 // Register the PWA service worker when served from a secure origin or localhost.
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
 render();
+window.ROUTINY_PUSH_CONFIG = {
+  vapidPublicKey: "BJ7U80oNynsBZAl7wJInEKljHMiB3_56ts0Lql6UV2lrC2Ge8-4vrDRsVsCo-FweyVuYlif1zRMZwxlc7H3iO0A"
+};
